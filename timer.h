@@ -10,6 +10,6 @@
 
 void delayUs(unsigned int delay);
 void delayMs(unsigned int delay);
-void initTMR1();
+void MsTMR1(unsigned int delay);
 
 #endif	/* INITTIMER_H */
