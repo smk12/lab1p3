@@ -28,10 +28,9 @@ void initSW2(){
     CNCONDbits.ON = 1;
     CNENDbits.CNIED6 = 1;
     IEC1bits.CNDIE = 1;
+    CNPUDbits.CNPUD6 = 1;
     IPC8bits.CNIP = 7;
     IPC8bits.CNIS = 2;
-    CNPUDbits.CNPUD6 = 1;
-    
     IFS1bits.CNDIF = 0;
     
 }
