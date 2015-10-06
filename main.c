@@ -19,8 +19,8 @@
 
 // ******************************************************************************************* //
 
-#define ON 0
-#define OFF 1
+#define LED_ON 0
+#define LED_OFF 1
 #define PRESS 0
 #define RELEASE 1
 #define led1 LATGbits.LATG12
@@ -51,28 +51,32 @@ int main(void)
     initTMR1();
     initSW2();
     state = RUN;
+    lastState = STOP;
     
     while(1)
     {
         switch(state)
         {
             case RUN:
-                led1 = ON;
-                led2 = OFF;
-                clearLCD();
-                printStringLCD("Running:");
+                led1 = LED_ON;
+                led2 = LED_OFF;
+                if(lastState==STOP)
+                {
+                    clearLCD();
+                    printStringLCD("Running:");
+                }
                 moveCursorLCD(1,0);
-                printCharLCD((char)min10);printCharLCD((char)min01);printCharLCD(sc);
-                printCharLCD((char)sec10);printCharLCD((char)sec01);printCharLCD(sc);
-                printCharLCD((char)ms10);printCharLCD((char)ms01);
+                printCharLCD((char)min10+'0');printCharLCD((char)min01+'0');printCharLCD(sc);
+                printCharLCD((char)sec10+'0');printCharLCD((char)sec01+'0');printCharLCD(sc);
+                printCharLCD((char)ms10+'0');printCharLCD((char)ms01+'0');
                 lastState = RUN;
                 T1CONbits.ON = 1;
                 break;
                 
             case STOP:
                 T1CONbits.ON = 0;
-                led1 = OFF;
-                led2 = ON;
+                led1 = LED_OFF;
+                led2 = LED_ON;
                 clearLCD();
                 printStringLCD("Stopped:");
                 moveCursorLCD(1,0);
@@ -120,6 +124,7 @@ void __ISR(_CHANGE_NOTICE_VECTOR, IPL7SRS) _CNInterrupt(void)
     else
         state = lastState;
     temp = -1;
+    temp2 = -1;
     
     /*
     temp = PORTDbits.RD6;
@@ -130,6 +135,7 @@ void __ISR(_CHANGE_NOTICE_VECTOR, IPL7SRS) _CNInterrupt(void)
 void __ISR(_TIMER_1_VECTOR, IPL3SRS) _T1Interrupt()
 {
     IFS0bits.T1IF = 0;
+    IFS0bits.T2IF = 0;
     ms01++;
     if(ms01>=10)
     {
