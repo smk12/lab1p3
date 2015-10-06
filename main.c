@@ -48,42 +48,70 @@ int main(void)
     enableInterrupts();
     initLEDs();
     initLCD();
-    initTMR1();
     initSW2();
-    state = RUN;
-    lastState = STOP;
+    state = STOP;
     
     while(1)
     {
         switch(state)
         {
             case RUN:
+                lastState = RUN;
                 led1 = LED_ON;
                 led2 = LED_OFF;
-                if(lastState==STOP)
+                clearLCD();
+                printStringLCD("Running:");
+                while(state==RUN)
                 {
-                    clearLCD();
-                    printStringLCD("Running:");
+                    moveCursorLCD(1,0);
+                    printCharLCD((char)min10+'0');printCharLCD((char)min01+'0');printCharLCD(sc);
+                    printCharLCD((char)sec10+'0');printCharLCD((char)sec01+'0');printCharLCD(sc);
+                    printCharLCD((char)ms10+'0');printCharLCD((char)ms01+'0');
+                    ms01++;
+                    MsTMR1(3);
+                    if(ms01>=10)
+                    {
+                        ms10++;
+                        ms01 = ms01-10;
+                        if(ms10>=10)
+                        {
+                            sec01++;
+                            ms10 = ms10-10;
+                            if(sec01>=10)
+                            {
+                                sec10++;
+                                sec01 = sec01-10;
+                                if(sec10>=6)
+                                {
+                                    min01++;
+                                    sec10 = sec10-6;
+                                    if(min01>=10)
+                                    {
+                                        min10++;
+                                        min01 = min01-10;
+                                        if(min10>=6)
+                                        {
+                                            min10 = 0;min01 = 0;sec10 = 0;sec01 = 0;ms10 = 0;ms01 = 0; TMR1 = 0;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-                moveCursorLCD(1,0);
-                printCharLCD((char)min10+'0');printCharLCD((char)min01+'0');printCharLCD(sc);
-                printCharLCD((char)sec10+'0');printCharLCD((char)sec01+'0');printCharLCD(sc);
-                printCharLCD((char)ms10+'0');printCharLCD((char)ms01+'0');
-                lastState = RUN;
-                T1CONbits.ON = 1;
                 break;
                 
             case STOP:
-                T1CONbits.ON = 0;
+                lastState = STOP;
                 led1 = LED_OFF;
                 led2 = LED_ON;
                 clearLCD();
                 printStringLCD("Stopped:");
                 moveCursorLCD(1,0);
-                printCharLCD((char)min10);printCharLCD((char)min01);printCharLCD(sc);
-                printCharLCD((char)sec10);printCharLCD((char)sec01);printCharLCD(sc);
-                printCharLCD((char)ms10);printCharLCD((char)ms01);
-                lastState = STOP;
+                printCharLCD((char)min10+'0');printCharLCD((char)min01+'0');printCharLCD(sc);
+                printCharLCD((char)sec10+'0');printCharLCD((char)sec01+'0');printCharLCD(sc);
+                printCharLCD((char)ms10+'0');printCharLCD((char)ms01+'0');
+                while(state == STOP){}
                 break;
                 
             case debouncePress:
@@ -113,9 +141,14 @@ void __ISR(_CHANGE_NOTICE_VECTOR, IPL7SRS) _CNInterrupt(void)
     temp = PORTGbits.RG13;
     temp2 = PORTDbits.RD6;
     IFS1bits.CNGIF = 0;
-    if(temp2==PRESS & lastState==STOP)
+    IFS1bits.CNDIF = 0;
+    if((temp2==PRESS) & (lastState==STOP))
     {
-        min10 = 0;min01 = 0;sec10 = 0;sec01 = 0;ms10 = 0;ms01 = 0; TMR1 = 0;
+        min10 = 0;min01 = 0;sec10 = 0;sec01 = 0;ms10 = 0;ms01 = 0;
+        moveCursorLCD(1,0);
+        printCharLCD((char)min10+'0');printCharLCD((char)min01+'0');printCharLCD(sc);
+        printCharLCD((char)sec10+'0');printCharLCD((char)sec01+'0');printCharLCD(sc);
+        printCharLCD((char)ms10+'0');printCharLCD((char)ms01+'0');
     }
     else if(temp==PRESS)
         state = debouncePress;
@@ -126,12 +159,14 @@ void __ISR(_CHANGE_NOTICE_VECTOR, IPL7SRS) _CNInterrupt(void)
     temp = -1;
     temp2 = -1;
     
+    
     /*
     temp = PORTDbits.RD6;
     IFS1bits.CNDIF = 0;
      */
 }
 
+/*
 void __ISR(_TIMER_1_VECTOR, IPL3SRS) _T1Interrupt()
 {
     IFS0bits.T1IF = 0;
@@ -167,3 +202,4 @@ void __ISR(_TIMER_1_VECTOR, IPL3SRS) _T1Interrupt()
         }
     }
 }
+*/
