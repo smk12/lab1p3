@@ -38,16 +38,17 @@ void delayMs(unsigned int delay){
 
 }
 
-void initTMR1()
+void MsTMR1(unsigned int delay)
 {
     TMR1 = 0;                           //configured for 10ms
-    PR1 = 6240;        //31249
-    T1CONbits.TCKPS = 0;//pre-scalar 3
+    PR1 = delay*39;        //31249
+    T1CONbits.TCKPS = 3;//pre-scalar 3
     T1CONbits.TCS = 0;//osc config
-    IEC0bits.T1IE = 1;
-    IPC1bits.T1IP = 3;
     IFS0bits.T1IF = 0;//flag
+    T1CONbits.ON = 1;
+    while(IFS0bits.T1IF == 0) {}
     T1CONbits.ON = 0;
+    IFS0bits.T1IF = 0;
 }
 
 /*
